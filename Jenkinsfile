@@ -34,6 +34,9 @@ pipeline {
                             installation: 'ansible',
                             inventory: 'inventory.yaml',
                             playbook: 'amazon-playbook.yml'
+                            extraVars: [
+                                ansible_user: "ec2-user"
+                            ]
                         )
 
                         ansiblePlaybook(
@@ -43,6 +46,9 @@ pipeline {
                             installation: 'ansible',
                             inventory: 'inventory.yaml',
                             playbook: 'ubuntu-playbook.yml'
+                            extraVars: [
+                                ansible_user: "ec2-user"
+                            ]
                         )
                     }
             }
