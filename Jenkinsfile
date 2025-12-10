@@ -3,6 +3,9 @@ pipeline {
 
     stages {
 
+        /* ---------------------------------------------------------
+           CHECKOUT CODE
+        --------------------------------------------------------- */
         stage('Checkout') {
             steps {
                 echo 'Cloning repo...'
@@ -10,69 +13,76 @@ pipeline {
             }
         }
 
+        /* ---------------------------------------------------------
+           TERRAFORM APPLY
+        --------------------------------------------------------- */
         stage('Terraform Apply') {
             steps {
                 script {
                     dir("${WORKSPACE}") {
 
-                        sh 'terraform init'
-                        sh 'terraform validate'
+                        sh "terraform init"
+                        sh "terraform validate"
 
-                        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']]) {
-                            sh 'terraform plan'
-                            sh 'terraform apply -auto-approve'
+                        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                                          credentialsId: 'aws-creds']]) {
+                            sh "terraform plan"
+                            sh "terraform apply -auto-approve"
                         }
 
-                        // -------------------------------
-                        // Wait until Terraform creates key
-                        // -------------------------------
+                        // -------------------------------------------------------
+                        // Wait for Terraform-generated SSH key (my-key.pem)
+                        // -------------------------------------------------------
                         sh '''
-                        echo "Waiting for Terraform-generated key..."
+                        echo "Checking for Terraform-generated SSH key..."
+
                         for i in {1..10}; do
                           if [ -f my-key.pem ]; then
-                            echo "Key found!"
+                            echo "SSH key found: my-key.pem"
                             break
                           fi
-                          echo "Key not found, retrying..."
+                          echo "Key not created yet, retrying..."
                           sleep 2
                         done
 
                         if [ ! -f my-key.pem ]; then
-                          echo "ERROR: my-key.pem not created by Terraform!"
+                          echo "ERROR: my-key.pem NOT found!"
                           exit 1
                         fi
+
+                        chmod 400 my-key.pem
                         '''
                     }
                 }
             }
         }
 
-        // ---------------------------------------------------------
-        // ANSIBLE DEPLOYMENT
-        // ---------------------------------------------------------
+        /* ---------------------------------------------------------
+           ANSIBLE DEPLOYMENT
+        --------------------------------------------------------- */
         stage('Ansible Deployment') {
             steps {
                 script {
 
-                    // Ensure correct permissions for SSH key
-                    sh 'chmod 400 my-key.pem'
+                    // Make sure inventory file exists
+                    if (!fileExists("inventory.yaml")) {
+                        error "inventory.yaml not found! Terraform must generate it."
+                    }
 
-                    echo "Running Ansible on Frontend EC2 (Amazon Linux)..."
+                    echo "========= Running Ansible on Frontend (Amazon Linux) ========="
                     ansiblePlaybook(
-                        credentialsId: '', 
-                        inventory: 'inventory.yaml',
-                        playbook: 'amazon-playbook.yml',
+                        playbook: "amazon-playbook.yml",
+                        inventory: "inventory.yaml",
                         disableHostKeyChecking: true,
-                        extras: "-u ec2-user --private-key my-key.pem"
+                        extras: "-u ec2-user --private-key ${WORKSPACE}/my-key.pem"
                     )
 
-                    echo "Running Ansible on Backend EC2 (Ubuntu)..."
+                    echo "========= Running Ansible on Backend (Ubuntu) ========="
                     ansiblePlaybook(
-                        credentialsId: '',
-                        inventory: 'inventory.yaml',
-                        playbook: 'ubuntu-playbook.yml',
+                        playbook: "ubuntu-playbook.yml",
+                        inventory: "inventory.yaml",
                         disableHostKeyChecking: true,
-                        extras: "-u ubuntu --private-key my-key.pem"
+                        extras: "-u ubuntu --private-key ${WORKSPACE}/my-key.pem"
                     )
                 }
             }
