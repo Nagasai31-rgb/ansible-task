@@ -6,8 +6,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 sh 'echo cloning repo'
-                git branch: 'main', url: 'git branch: 'main', url: 'https://github.com/Nagasai31-rgb/ansible-task.git'
-'
+                git branch: 'main', url: 'https://github.com/Nagasai31-rgb/ansible-task.git'
             }
         }
 
@@ -39,11 +38,11 @@ pipeline {
                         inventory: 'inventory.yaml',
                         playbook: 'amazon-playbook.yml',
                         extraVars: [
-                            ansible_user: "ec2-user"   // <-- Correct SSH user
+                            ansible_user: "ec2-user"
                         ]
                     )
 
-                    // --- UBUNTU (backend, only if needed) ---
+                    // --- UBUNTU (backend) ---
                     ansiblePlaybook(
                         become: true,
                         credentialsId: 'my-key',
@@ -52,7 +51,7 @@ pipeline {
                         inventory: 'inventory.yaml',
                         playbook: 'ubuntu-playbook.yml',
                         extraVars: [
-                            ansible_user: "ubuntu"     // <-- Ubuntu default user
+                            ansible_user: "ubuntu"
                         ]
                     )
                 }
