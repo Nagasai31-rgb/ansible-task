@@ -8,7 +8,8 @@ provider "aws" {
 resource "aws_instance" "backend" {
   ami                    = "ami-0ecb62995f68bb549"  
   instance_type          = "t3.micro"
-  key_name               = "my-key"            
+  key_name               = "my-key"   
+  subnet                 = "subnet-0beda85289ef0b8ec"
   tags = {
     Name = "u21.local"
   }
