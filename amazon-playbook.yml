@@ -3,19 +3,22 @@
   become: true
   tasks:
 
-    # Skip SELinux handling for Amazon Linux (it doesn't use this module)
-    - name: Disable SELinux (Skipped for Amazon Linux)
-    # Safely skip without causing failure
+    - name: Disable SELinux (skip on Amazon Linux)
       selinux:
         state: disabled
       when:
         - ansible_os_family == "RedHat"
         - ansible_distribution != "Amazon"
 
-    - name: Update Packages
+    - name: Update packages
       yum:
         name: "*"
         state: latest
+
+    - name: Enable Nginx Amazon Linux Extra Repo
+      command: amazon-linux-extras enable nginx1
+      args:
+        creates: /etc/yum.repos.d/amzn2extra-nginx1.repo
 
     - name: Install Nginx
       yum:
