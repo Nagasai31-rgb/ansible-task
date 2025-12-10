@@ -13,18 +13,15 @@
       args:
         creates: /etc/yum.repos.d/amzn2extra-nginx1.repo
 
-    - name: Clean yum metadata (required after enabling extras)
+    - name: Clean yum metadata
       command: yum clean metadata
 
-    - name: Install required packages for nginx
+    - name: Install nginx
       yum:
-        name:
-          - nginx
-          - policycoreutils-python-utils
-          - libsemanage-python
+        name: nginx
         state: present
 
-    - name: Ensure nginx runtime directory exists (fix pid startup issue)
+    - name: Ensure nginx runtime directory exists (fix pid issue)
       file:
         path: /run/nginx
         state: directory
@@ -46,12 +43,12 @@
         state: started
         enabled: true
 
-    - name: Configure Nginx proxy template
+    - name: Configure Nginx proxy
       template:
         src: nginx.conf.j2
         dest: /etc/nginx/nginx.conf
-      notify: restart nginx
-
+      notify:
+        - restart nginx
 
   handlers:
     - name: restart nginx
