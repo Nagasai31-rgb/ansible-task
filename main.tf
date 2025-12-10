@@ -6,10 +6,10 @@ provider "aws" {
 }
 
 ###############################################################
-# DATA SOURCES (Required for AMI Lookup)
+# DATA SOURCES (AMI Lookup)
 ###############################################################
 
-# Amazon Linux 2 AMI
+# Amazon Linux 2 AMI (Frontend)
 data "aws_ami" "amazon_linux" {
   most_recent = true
   owners      = ["amazon"]
@@ -20,7 +20,7 @@ data "aws_ami" "amazon_linux" {
   }
 }
 
-# Ubuntu 20.04 AMI
+# Ubuntu 20.04 AMI (Backend)
 data "aws_ami" "ubuntu" {
   most_recent = true
   owners      = ["099720109477"] # Canonical
@@ -51,11 +51,11 @@ resource "aws_key_pair" "ansible_keypair" {
 }
 
 ###############################################################
-# EC2 FRONTEND (Amazon Linux)
+# EC2 FRONTEND (Amazon Linux 2)
 ###############################################################
 resource "aws_instance" "frontend" {
   ami           = data.aws_ami.amazon_linux.id
-  instance_type = "t2.micro"
+  instance_type = "t2.micro"   # FREE TIER ELIGIBLE
   key_name      = aws_key_pair.ansible_keypair.key_name
 
   tags = {
@@ -64,11 +64,11 @@ resource "aws_instance" "frontend" {
 }
 
 ###############################################################
-# EC2 BACKEND (Ubuntu)
+# EC2 BACKEND (Ubuntu 20.04)
 ###############################################################
 resource "aws_instance" "backend" {
   ami           = data.aws_ami.ubuntu.id
-  instance_type = "t2.micro"
+  instance_type = "t2.micro"   # FREE TIER ELIGIBLE
   key_name      = aws_key_pair.ansible_keypair.key_name
 
   tags = {
