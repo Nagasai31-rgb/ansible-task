@@ -50,4 +50,34 @@ resource "aws_instance" "frontend" {
     hostname=$(hostname)
     backend_ip="${aws_instance.backend.public_ip}"
 
-    echo "$backend_ip $hostname" | sudo tee -a /et_
+    echo "$backend_ip $hostname" | sudo tee -a /etc/hosts
+  EOF
+
+  depends_on = [aws_instance.backend]
+}
+
+# ---------------------------
+# Inventory file
+# ---------------------------
+resource "local_file" "inventory" {
+  filename = "./inventory.yaml"
+
+  content = <<EOF
+[frontend]
+${aws_instance.frontend.public_ip}
+
+[backend]
+${aws_instance.backend.public_ip}
+EOF
+}
+
+# ---------------------------
+# Outputs
+# ---------------------------
+output "frontend_public_ip" {
+  value = aws_instance.frontend.public_ip
+}
+
+output "backend_public_ip" {
+  value = aws_instance.backend.public_ip
+}
