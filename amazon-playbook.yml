@@ -1,6 +1,7 @@
 ---
 - hosts: frontend
   become: true
+
   tasks:
 
     - name: Update packages
@@ -21,7 +22,7 @@
         name: nginx
         state: present
 
-    - name: Ensure nginx runtime directory exists (fix pid issue)
+    - name: Ensure nginx runtime directory exists
       file:
         path: /run/nginx
         state: directory
@@ -36,7 +37,8 @@
         owner: nginx
         group: nginx
         mode: '0755'
-        - name: Replace nginx.conf with default known-good config
+
+    - name: Replace nginx.conf with default known-good config
       copy:
         dest: /etc/nginx/nginx.conf
         content: |
@@ -68,22 +70,8 @@
               }
           }
 
-
     - name: Start nginx service
       service:
         name: nginx
         state: started
         enabled: true
-
-    - name: Configure Nginx proxy
-      template:
-        src: nginx.conf.j2
-        dest: /etc/nginx/nginx.conf
-      notify:
-        - restart nginx
-
-  handlers:
-    - name: restart nginx
-      systemd:
-        name: nginx
-        state: restarted
