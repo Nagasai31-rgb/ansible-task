@@ -2,17 +2,23 @@
 - hosts: frontend
   become: true
   tasks:
-    - name: Disable SELinux
+
+    # Skip SELinux handling for Amazon Linux (it doesn't use this module)
+    - name: Disable SELinux (Skipped for Amazon Linux)
+    # Safely skip without causing failure
       selinux:
         state: disabled
+      when:
+        - ansible_os_family == "RedHat"
+        - ansible_distribution != "Amazon"
 
-    - name: Update DNF repositories
-      dnf:
+    - name: Update Packages
+      yum:
         name: "*"
         state: latest
 
     - name: Install Nginx
-      dnf:
+      yum:
         name: nginx
         state: present
 
@@ -20,8 +26,8 @@
       service:
         name: nginx
         state: started
-        enabled: true  # Start Nginx service on system boot
-        
+        enabled: true
+
     - name: Configure Nginx proxy
       template:
         src: nginx.conf.j2
