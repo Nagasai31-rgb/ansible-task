@@ -2,14 +2,31 @@ provider "aws" {
   region = "us-east-1"
 }
 
+# =============================
+# Subnet Lookup (Automatically find subnet)
+# =============================
+data "aws_subnets" "all" {
+  filter {
+    name   = "vpc-id"
+    values = [var.vpc_id]   # <-- make sure var.vpc_id exists OR replace with actual VPC ID
+  }
+}
+
+data "aws_subnet" "selected" {
+  id = data.aws_subnets.all.ids[0]
+}
+
 # ---------------------------
 # Backend - Ubuntu
 # ---------------------------
 resource "aws_instance" "backend" {
-  ami                    = "ami-0ecb62995f68bb549"  
+  ami                    = "ami-0ecb62995f68bb549"
   instance_type          = "t3.micro"
-  key_name               = "my-key"   
-  subnet                 = "subnet-0293f00eab2b610e4"
+  key_name               = "my-key"
+  
+  # use auto-selected subnet
+  subnet_id              = data.aws_subnet.selected.id
+
   tags = {
     Name = "u21.local"
   }
@@ -24,9 +41,13 @@ resource "aws_instance" "backend" {
 # Frontend - Amazon Linux
 # ---------------------------
 resource "aws_instance" "frontend" {
-  ami                    = "ami-068c0051b15cdb816"   # Amazon Linux
+  ami                    = "ami-068c0051b15cdb816"
   instance_type          = "t3.micro"
   key_name               = "my-key"
+
+  # also use auto-selected subnet
+  subnet_id              = data.aws_subnet.selected.id
+
   tags = {
     Name = "c8.local"
   }
