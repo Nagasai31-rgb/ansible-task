@@ -28,8 +28,7 @@ resource "aws_instance" "frontend" {
   ami                    = "ami-068c0051b15cdb816"   # Amazon Linux
   instance_type          = "t3.micro"
   key_name               = "my-key"
-  subnet_id              = "subnet-04f01a3277f9dd175"
-
+  subnet_id              = "subnet-0491ca8b1885b7e5e"
   tags = {
     Name = "c8.local"
   }
