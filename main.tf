@@ -9,7 +9,7 @@ resource "aws_instance" "backend" {
   ami                    = "ami-0ecb62995f68bb549"  
   instance_type          = "t3.micro"
   key_name               = "my-key"   
-  subnet                 = "subnet-0beda85289ef0b8ec"
+  subnet                 = "subnet-0293f00eab2b610e4"
   tags = {
     Name = "u21.local"
   }
