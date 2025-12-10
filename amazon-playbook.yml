@@ -36,6 +36,38 @@
         owner: nginx
         group: nginx
         mode: '0755'
+        - name: Replace nginx.conf with default known-good config
+      copy:
+        dest: /etc/nginx/nginx.conf
+        content: |
+          user nginx;
+          worker_processes auto;
+          error_log /var/log/nginx/error.log notice;
+          pid /run/nginx.pid;
+
+          include /usr/share/nginx/modules/*.conf;
+
+          events {
+              worker_connections 1024;
+          }
+
+          http {
+              include       /etc/nginx/mime.types;
+              default_type  application/octet-stream;
+
+              sendfile        on;
+              keepalive_timeout  65;
+
+              include /etc/nginx/conf.d/*.conf;
+
+              server {
+                  listen 80;
+                  location / {
+                      return 200 "Nginx default OK\n";
+                  }
+              }
+          }
+
 
     - name: Start nginx service
       service:
