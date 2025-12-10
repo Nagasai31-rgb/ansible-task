@@ -1,7 +1,6 @@
 provider "aws" {
   region = "us-east-1"
 }
-
 # =====================================
 # Automatically generate SSH key pair
 # =====================================
@@ -12,18 +11,18 @@ resource "tls_private_key" "generated" {
 }
 
 resource "aws_key_pair" "generated_key" {
-  key_name   = "my-key"
-  public_key = tls_private_key.generated.public_key_openssh
-
-  lifecycle {
-    ignore_changes = [public_key]   # prevents DuplicateKey errors
-  }
+  key_name_prefix = "auto-key-"     # <-- FIXED (no duplicates)
+  public_key      = tls_private_key.generated.public_key_openssh
 }
 
 resource "local_file" "private_key" {
-  content          = tls_private_key.generated.private_key_pem
-  filename         = "${path.module}/my-key.pem"
-  file_permission  = "0400"
+  content         = tls_private_key.generated.private_key_pem
+  filename        = "${path.module}/my-key.pem"
+  file_permission = "0400"
+}
+
+output "ssh_key_name" {
+  value = aws_key_pair.generated_key.key_name
 }
 
 # =====================================
