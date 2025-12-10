@@ -5,7 +5,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                sh 'echo cloning repo'
+                echo 'cloning repo'
                 git branch: 'main', url: 'https://github.com/Nagasai31-rgb/ansible-task.git'
             }
         }
@@ -26,33 +26,36 @@ pipeline {
             }
         }
 
+        /* ---------------------------------------------------------
+           NEW UPDATED ANSIBLE DEPLOYMENT STAGE
+        --------------------------------------------------------- */
         stage('Ansible Deployment') {
             steps {
                 script {
 
-                    // --- AMAZON LINUX (frontend) ---
+                    // Ensure key permissions for SSH
+                    sh 'chmod 400 my-key.pem'
+
+                    // -----------------------------
+                    // AMAZON LINUX (frontend)
+                    // -----------------------------
                     ansiblePlaybook(
-                        credentialsId: 'my-key',
-                        disableHostKeyChecking: true,
-                        installation: 'ansible',
+                        credentialsId: '',                   // no Jenkins creds
                         inventory: 'inventory.yaml',
                         playbook: 'amazon-playbook.yml',
-                        extraVars: [
-                            ansible_user: "ec2-user"
-                        ]
+                        disableHostKeyChecking: true,
+                        extras: "-u ec2-user --private-key my-key.pem"
                     )
 
-                    // --- UBUNTU (backend) ---
+                    // -----------------------------
+                    // UBUNTU (backend)
+                    // -----------------------------
                     ansiblePlaybook(
-                        become: true,
-                        credentialsId: 'my-key',
-                        disableHostKeyChecking: true,
-                        installation: 'ansible',
+                        credentialsId: '',
                         inventory: 'inventory.yaml',
                         playbook: 'ubuntu-playbook.yml',
-                        extraVars: [
-                            ansible_user: "ubuntu"
-                        ]
+                        disableHostKeyChecking: true,
+                        extras: "-u ubuntu --private-key my-key.pem"
                     )
                 }
             }
