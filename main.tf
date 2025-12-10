@@ -55,7 +55,7 @@ resource "aws_key_pair" "ansible_keypair" {
 ###############################################################
 resource "aws_instance" "frontend" {
   ami           = data.aws_ami.amazon_linux.id
-  instance_type = "t2.micro"   # FREE TIER ELIGIBLE
+  instance_type = "t3.micro"   # FREE TIER ELIGIBLE
   key_name      = aws_key_pair.ansible_keypair.key_name
 
   tags = {
@@ -68,7 +68,7 @@ resource "aws_instance" "frontend" {
 ###############################################################
 resource "aws_instance" "backend" {
   ami           = data.aws_ami.ubuntu.id
-  instance_type = "t2.micro"   # FREE TIER ELIGIBLE
+  instance_type = "t3.micro"   # FREE TIER ELIGIBLE
   key_name      = aws_key_pair.ansible_keypair.key_name
 
   tags = {
