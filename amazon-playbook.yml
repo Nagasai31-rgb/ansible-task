@@ -3,40 +3,55 @@
   become: true
   tasks:
 
-    - name: Disable SELinux (skip on Amazon Linux)
-      selinux:
-        state: disabled
-      when:
-        - ansible_os_family == "RedHat"
-        - ansible_distribution != "Amazon"
-
     - name: Update packages
       yum:
         name: "*"
         state: latest
 
-    - name: Enable Nginx Amazon Linux Extra Repo
+    - name: Enable nginx Amazon Linux extra repo
       command: amazon-linux-extras enable nginx1
       args:
         creates: /etc/yum.repos.d/amzn2extra-nginx1.repo
 
-    - name: Install Nginx
+    - name: Clean yum metadata (required after enabling extras)
+      command: yum clean metadata
+
+    - name: Install required packages for nginx
       yum:
-        name: nginx
+        name:
+          - nginx
+          - policycoreutils-python-utils
+          - libsemanage-python
         state: present
 
-    - name: Start Nginx service
+    - name: Ensure nginx runtime directory exists (fix pid startup issue)
+      file:
+        path: /run/nginx
+        state: directory
+        owner: nginx
+        group: nginx
+        mode: '0755'
+
+    - name: Ensure log directory exists
+      file:
+        path: /var/log/nginx
+        state: directory
+        owner: nginx
+        group: nginx
+        mode: '0755'
+
+    - name: Start nginx service
       service:
         name: nginx
         state: started
         enabled: true
 
-    - name: Configure Nginx proxy
+    - name: Configure Nginx proxy template
       template:
         src: nginx.conf.j2
         dest: /etc/nginx/nginx.conf
-      notify:
-        - restart nginx
+      notify: restart nginx
+
 
   handlers:
     - name: restart nginx
